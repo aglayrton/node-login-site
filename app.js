@@ -56,8 +56,9 @@ app.get("/usuario/:id", eAdmin, async (req, res) => {
 });
 
 app.post("/usuario", eAdmin, async (req, res) => {
-  // const { name, email } = req.body;
-  await Usuario.create(req.body)
+  let dados = req.body;
+  dados.password = await bcrypt.hash(dados.password, 8);
+  await Usuario.create(dados)
     .then(() => {
       return res.status(201).json({
         erro: false,
@@ -122,19 +123,28 @@ app.put("/usuario-senha", eAdmin, async (req, res) => {
 });
 
 app.post("/login", async (req, res) => {
+  await sleep(3000);
+  function sleep(ms) {
+    return new Promise((resolver) => setTimeout(resolver, ms));
+  }
+
   const user = await Usuario.findOne({
-    attributes: ["id", "email", "password", "nivel_acesso"],
+    attributes: ["id", "email", "password", "nivel_acesso", "status"],
     where: { email: req.body.email },
   });
 
   if (user == null) {
     return res
-      .status(404)
-      .json({ erro: true, mensagem: "Usuário ou senha incorreta!" });
+      .status(400)
+      .json({ erro: true, mensagem: "Usuário ou senha incorreta! 400" });
+  }
+
+  if (user.status == 0) {
+    return res.status(200).json({ erro: true, mensagem: "Usuário desativado" });
   }
 
   if (!(await bcrypt.compare(req.body.password, user.password))) {
-    return res.json({
+    return res.status(400).json({
       erro: true,
       mensagem: "Usuário ou senha incorreta!",
     });
