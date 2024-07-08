@@ -12,7 +12,7 @@ module.exports = {
       });
     }
 
-    const token = authHeader.split(" ")[1]; // Pega apenas o token sem o "Bearer"
+    const [bearen, token] = authHeader.split(" ")[1]; // Pega apenas o token sem o "Bearer"
 
     try {
       const decoded = await jwt.verify(token, process.env.SECRET_KEY);
