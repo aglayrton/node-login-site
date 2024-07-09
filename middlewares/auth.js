@@ -4,7 +4,7 @@ require("dotenv").config();
 module.exports = {
   eAdmin: async function validarToken(req, res, next) {
     const authHeader = req.headers.authorization;
-    
+
     if (!authHeader) {
       return res.status(400).json({
         erro: true,
@@ -12,11 +12,10 @@ module.exports = {
       });
     }
 
-    const [bearen, token] = authHeader.split(" ")[1]; // Pega apenas o token sem o "Bearer"
-
+    const [bearen, token] = authHeader.split(" "); // Pega apenas o token sem o "Bearer"
+    console.log(token);
     try {
       const decoded = await jwt.verify(token, process.env.SECRET_KEY);
-
       req.userId = decoded.id;
       return next();
     } catch (error) {
