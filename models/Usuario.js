@@ -41,6 +41,6 @@ const Usuario = db.define("users", {
   },
 });
 
-Usuario.sync({ alter: true }); //se não existir a tabela, ele criará a tabela.
+// Usuario.sync({ alter: true }); //se não existir a tabela, ele criará a tabela.
 
 module.exports = Usuario;
