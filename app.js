@@ -4,8 +4,11 @@ const jwt = require("jsonwebtoken");
 const cors = require("cors");
 const { eAdmin } = require("./middlewares/auth.js");
 const Usuario = require("./models/Usuario.js");
-const { where } = require("sequelize");
+const yup = require("yup");
+// import * as yup from "yup";
+
 require("dotenv").config();
+
 const app = express();
 
 app.use(express.json());
@@ -19,6 +22,43 @@ app.use((req, res, next) => {
   );
   app.use(cors());
   next();
+});
+
+app.get("/usuarios/:page", eAdmin, async (req, res) => {
+  const { page } = req.params;
+  const limit = 2;
+
+  const countUsuario = await Usuario.count();
+
+  if (countUsuario == null) {
+    return res.json({
+      erro: true,
+      mensagem: "Nenhum usuário encontrado!",
+    });
+  } else {
+    ultimaPagina = Math.ceil(countUsuario / limit);
+  }
+
+  await Usuario.findAll({
+    attributes: ["id", "name", "email"],
+    order: [["id"]],
+    offset: Number(page * limit) - limit,
+    limit: limit,
+  })
+    .then((users) => {
+      return res.json({
+        erro: false,
+        users,
+        countUsuario,
+        ultimaPagina,
+      });
+    })
+    .catch(() => {
+      return res.status(400).json({
+        erro: true,
+        mensagem: "Nenhum usuário encontrado!",
+      });
+    });
 });
 
 app.get("/usuario", eAdmin, async (req, res) => {
@@ -57,6 +97,20 @@ app.get("/usuario/:id", eAdmin, async (req, res) => {
 
 app.post("/usuario", eAdmin, async (req, res) => {
   let dados = req.body;
+
+  let schema = yup.object().shape({
+    name: yup.string().required(),
+    email: yup.string().required(),
+    senha: yup.string().required(),
+  });
+
+  if (!(await schema.isValid(dados))) {
+    return res.status(400).json({
+      erro: true,
+      mensagem: "Erro ao cadastrar",
+    });
+  }
+
   dados.password = await bcrypt.hash(dados.password, 8);
   await Usuario.create(dados)
     .then(() => {
@@ -152,7 +206,12 @@ app.post("/login", async (req, res) => {
 
   //geração de token
   let token = jwt.sign(
-    { id: user.id, email: user.email, nivel: user.nivel_acesso },
+    {
+      id: user.id,
+      email: user.email,
+      nivel: user.nivel_acesso,
+      status: user.status,
+    },
     process.env.SECRET_KEY,
     {
       expiresIn: "1d", //1 dia
