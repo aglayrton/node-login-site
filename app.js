@@ -126,6 +126,15 @@ app.post("/usuario", eAdmin, async (req, res) => {
   //   });
   // }
 
+  const user = await Usuario.findOne({ where: { email: req.body.email } });
+
+  if (user) {
+    return res.status(400).json({
+      erro: true,
+      mensagem: "Erro, email já cadastrado",
+    });
+  }
+
   dados.password = await bcrypt.hash(dados.password, 8);
   await Usuario.create(dados)
     .then(() => {
