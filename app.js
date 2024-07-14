@@ -332,6 +332,50 @@ app.delete("/desativar/:id", async (req, res) => {
   }
 });
 
+//---------------ACESSO DE PERFIL (uso o id que esta no token pelo auth do node-------------------
+app.get("/perfil", eAdmin, async (req, res) => {
+  const id = req.userId;
+  //await Usuario.findAll({where: { id }})
+  await Usuario.findByPk(id)
+    .then((user) => {
+      return res.status(200).json({
+        erro: false,
+        user,
+      });
+    })
+    .catch(() => {
+      return res.status(400).json({
+        erro: true,
+        mensagem: "Recurso não encontrado",
+      });
+    });
+});
+
+app.put("/perfil", eAdmin, async (req, res) => {
+  const id = req.userId;
+  
+  await Usuario.update(req.body, { where: { id: id } })
+    .then(([affectedRows]) => {
+      if (affectedRows === 0) {
+        return res.status(400).json({
+          erro: true,
+          mensagem: "Usuário não encontrado!",
+        });
+      }
+      return res.json({
+        erro: false,
+        mensagem: "Usuário editado com sucesso!",
+      });
+    })
+    .catch((err) => {
+      console.error("Erro ao editar usuário:", err);
+      return res.status(500).json({
+        erro: true,
+        mensagem: "Erro interno do servidor",
+      });
+    });
+});
+
 app.listen(8080, () => {
   console.log("Servidor iniciado na porta 8080");
 });
