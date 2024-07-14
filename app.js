@@ -99,17 +99,32 @@ app.post("/usuario", eAdmin, async (req, res) => {
   let dados = req.body;
 
   let schema = yup.object().shape({
-    name: yup.string().required(),
-    email: yup.string().required(),
-    senha: yup.string().required(),
+    name: yup
+      .string("necessário preencher o campo nome!")
+      .required("necessário preencher o campo nome!"),
+    email: yup
+      .string("necessário preencher o campo email!")
+      .required("necessário preencher o campo email!"),
+    password: yup
+      .string("necessário preencher o campo senha!")
+      .required("necessário preencher o campo senha!"),
   });
 
-  if (!(await schema.isValid(dados))) {
+  try {
+    await schema.validate(dados);
+  } catch (err) {
     return res.status(400).json({
       erro: true,
-      mensagem: "Erro ao cadastrar",
+      mensagem: err.errors,
     });
   }
+
+  // if (!(await schema.isValid(dados))) {
+  //   return res.status(400).json({
+  //     erro: true,
+  //     mensagem: "Erro ao cadastrar",
+  //   });
+  // }
 
   dados.password = await bcrypt.hash(dados.password, 8);
   await Usuario.create(dados)
