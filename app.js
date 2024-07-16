@@ -6,8 +6,9 @@ const { eAdmin } = require("./middlewares/auth.js");
 const Usuario = require("./models/Usuario.js");
 const yup = require("yup");
 const nodemailer = require("nodemailer");
-const { where } = require("sequelize");
-const uploadImgPerfil = require("./public/upload/usuarios/uploadImgPerfil.js");
+const uploadImgPerfil = require("./middlewares/uploadImgPerfil.js");
+const fs = require("fs");
+const path = require("path");
 // import * as yup from "yup";
 
 require("dotenv").config();
@@ -506,15 +507,40 @@ app.put("/atualizar-senha/:key", async (req, res) => {
 });
 /**----------FOTO-------------- */
 app.put(
-  "editar-foto-perfil",
+  "/editar-foto-perfil",
   eAdmin,
   uploadImgPerfil.single("image"),
-  async (req, res) => {
+  (req, res) => {
     if (req.file) {
-      await Usuario.update(
-        { foto: req.file.filename },
-        { where: { id: req.userId } }
-      )
+      Usuario.findByPk(req.userId)
+        .then((usuario) => {
+          if (!usuario) {
+            return res.status(400).json({
+              erro: true,
+              mensagem: "Usuário não encontrado!",
+            });
+          }
+
+          const imagemAntiga = path.join(
+            __dirname,
+            "public/upload/usuarios",
+            usuario.foto
+          );
+          fs.access(imagemAntiga, fs.constants.F_OK, (err) => {
+            if (!err) {
+              fs.unlink(imagemAntiga, (unlinkErr) => {
+                if (unlinkErr) {
+                  console.error("Erro ao excluir a imagem antiga:", unlinkErr);
+                }
+              });
+            }
+          });
+
+          return Usuario.update(
+            { foto: req.file.filename },
+            { where: { id: req.userId } }
+          );
+        })
         .then(([affectedRows]) => {
           if (affectedRows === 0) {
             return res.status(400).json({
@@ -534,6 +560,11 @@ app.put(
             mensagem: "Erro interno do servidor",
           });
         });
+    } else {
+      return res.status(400).json({
+        erro: true,
+        mensagem: "Nenhuma imagem foi enviada!",
+      });
     }
   }
 );
