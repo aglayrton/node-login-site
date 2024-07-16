@@ -10,11 +10,13 @@ module.exports = multer({
     },
   }),
   fileFilter: (req, file, cb) => {
-    const extensaoImagem = ["image/png", "imagem/jpg", "imagem/jpg"].find(
-      (formatoAceito) => formatoAceito == file.mimetype
+    const extensaoImagem = ["image/png", "image/jpeg", "image/jpg"].find(
+      (formatoAceito) => formatoAceito === file.mimetype
     );
     if (extensaoImagem) {
-      return cb(null, true);
+      cb(null, true);
+    } else {
+      cb(new Error("Tipo de arquivo não suportado"), false);
     }
   },
 });
