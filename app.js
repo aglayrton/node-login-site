@@ -5,6 +5,7 @@ const cors = require("cors");
 const { eAdmin } = require("./middlewares/auth.js");
 const Usuario = require("./models/Usuario.js");
 const yup = require("yup");
+const nodemailer = require("nodemailer");
 // import * as yup from "yup";
 
 require("dotenv").config();
@@ -353,7 +354,7 @@ app.get("/perfil", eAdmin, async (req, res) => {
 
 app.put("/perfil", eAdmin, async (req, res) => {
   const id = req.userId;
-  
+
   await Usuario.update(req.body, { where: { id: id } })
     .then(([affectedRows]) => {
       if (affectedRows === 0) {
@@ -374,6 +375,37 @@ app.put("/perfil", eAdmin, async (req, res) => {
         mensagem: "Erro interno do servidor",
       });
     });
+});
+/**-----------------Recuperação de email--------- */
+app.post("/recuperar-senha", async (req, res) => {
+  var transport = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+  var message = {
+    from: "sender@server.com",
+    to: "aglayrtonjuliao@gmail.com",
+    subject: "Message title",
+    text: "Plaintext version of the message",
+    html: "<p>HTML version of the message</p>",
+  };
+
+  await transport.sendMail(message, (err) => {
+    if (err) {
+      return res.status(400).json({
+        erro: true,
+        mensagem: "Erro: E-mail não enviado com sucesso!",
+      });
+    }
+    return res.json({
+      erro: false,
+      mensagem: "E-mail  enviado com sucesso!",
+    });
+  });
 });
 
 app.listen(8080, () => {
