@@ -8,3 +8,4 @@ SEQUENCIA PARA CRIAR O PROJETO
 # npm install --save dotenv
 # npm i cors
 # npm i yup
+# npm install --save nodemailer
