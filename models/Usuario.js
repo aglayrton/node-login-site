@@ -39,8 +39,11 @@ const Usuario = db.define("users", {
     allowNull: false,
     defaultValue: 1, // Define um nível de acesso padrão, por exemplo, 1 para usuário padrão
   },
+  recuperar_senha:{
+    type: Sequelize.STRING,
+  }
 });
 
-// Usuario.sync({ alter: true }); //se não existir a tabela, ele criará a tabela.
+//  Usuario.sync({ alter: true }); //se não existir a tabela, ele criará a tabela.
 
 module.exports = Usuario;
