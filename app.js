@@ -7,6 +7,7 @@ const Usuario = require("./models/Usuario.js");
 const yup = require("yup");
 const nodemailer = require("nodemailer");
 const { where } = require("sequelize");
+const uploadImgPerfil = require("./public/upload/usuarios/uploadImgPerfil.js");
 // import * as yup from "yup";
 
 require("dotenv").config();
@@ -503,7 +504,39 @@ app.put("/atualizar-senha/:key", async (req, res) => {
       });
     });
 });
-
+/**----------FOTO-------------- */
+app.put(
+  "editar-foto-perfil",
+  eAdmin,
+  uploadImgPerfil.single("image"),
+  async (req, res) => {
+    if (req.file) {
+      await Usuario.update(
+        { foto: req.file.filename },
+        { where: { id: req.userId } }
+      )
+        .then(([affectedRows]) => {
+          if (affectedRows === 0) {
+            return res.status(400).json({
+              erro: true,
+              mensagem: "Usuário não encontrado!",
+            });
+          }
+          return res.json({
+            erro: false,
+            mensagem: "Usuário editado com sucesso!",
+          });
+        })
+        .catch((err) => {
+          console.error("Erro ao editar usuário:", err);
+          return res.status(500).json({
+            erro: true,
+            mensagem: "Erro interno do servidor",
+          });
+        });
+    }
+  }
+);
 app.listen(8080, () => {
   console.log("Servidor iniciado na porta 8080");
 });
