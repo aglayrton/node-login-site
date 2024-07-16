@@ -475,6 +475,35 @@ app.post("/validar-chave/:key", async (req, res) => {
   });
 });
 
+app.put("/atualizar-senha/:key", async (req, res) => {
+  const { key } = req.params;
+  const { password } = req.body;
+  console.log(key, " ", password);
+  const senha = await bcrypt.hash(password, 8);
+  console.log(senha);
+
+  await Usuario.update({ password: senha }, { where: { recuperar_senha: key } })
+    .then(([affectedRows]) => {
+      if (affectedRows === 0) {
+        return res.status(400).json({
+          erro: true,
+          mensagem: "Usuário não encontrado!",
+        });
+      }
+      return res.json({
+        erro: false,
+        mensagem: "Senha atualizada com sucesso!",
+      });
+    })
+    .catch((err) => {
+      console.error("Erro ao atualizar a senha:", err);
+      return res.status(500).json({
+        erro: true,
+        mensagem: "Erro interno do servidor",
+      });
+    });
+});
+
 app.listen(8080, () => {
   console.log("Servidor iniciado na porta 8080");
 });
