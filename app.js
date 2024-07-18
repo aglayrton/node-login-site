@@ -16,6 +16,8 @@ require("dotenv").config();
 const app = express();
 
 app.use(express.json());
+//rota de acesso a imagens http://localhost:8080/files/usuarios/nome.pngoujpg
+app.use("/files", express.static(path.resolve(__dirname, "public", "upload")));
 
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
@@ -86,9 +88,11 @@ app.get("/usuario/:id", eAdmin, async (req, res) => {
   //await Usuario.findAll({where: { id }})
   await Usuario.findByPk(id)
     .then((users) => {
+      let enderecoImagem = "http://localhost:8080/files/usuarios/" + users.foto;
       return res.status(200).json({
         erro: false,
         users,
+        enderecoImagem,
       });
     })
     .catch(() => {
