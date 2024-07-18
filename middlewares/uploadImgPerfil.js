@@ -16,7 +16,10 @@ module.exports = multer({
       cb(null, "./public/upload/usuarios");
     },
     filename: function (req, file, cb) {
-      cb(null, Date.now().toString() + "_" + file.originalname);
+      cb(
+        null,
+        Date.now().toString() + req.userId + path.extname(file.originalname)
+      );
     },
   }),
   fileFilter: (req, file, cb) => {
